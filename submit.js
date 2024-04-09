@@ -6,7 +6,7 @@ document.getElementById("uploadForm").addEventListener("submit", function(event)
   formData.append("file", fileInput);
 
   var xhr = new XMLHttpRequest();
-  xhr.open("POST", "upload.php", true);
+  xhr.open("POST", "http://localhost:4444/hehe", true);
   xhr.onload = function() {
     if (xhr.status === 200) {
       document.getElementById("statusMsg").innerText = "File uploaded successfully!";
