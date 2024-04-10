@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/app/StudentWork/starek.py", line 1, in <module>
+    sssfprint("Hello, World!")
+    ^^^^^^^^^
+NameError: name 'sssfprint' is not defined
