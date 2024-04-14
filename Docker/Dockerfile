@@ -1,14 +1,17 @@
-FROM python:3
+# Use a Python base image
+FROM python:3.9-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy all .py files from /app/StudentWork into the container
-COPY ./StudentWork/*.py /app/StudentWork/
+# Copy the Python scripts from host to container
+COPY ./StudentWork /app/StudentWork
 
-# Create a directory to store output files
-RUN mkdir /output
+# Create output directory
+RUN mkdir -p /output
 
-# Run each Python script in /app/StudentWork and redirect output and error to corresponding text files
-CMD ["bash", "-c", "for script in /app/StudentWork/*.py; do python3 $script > /output/$(basename $script .py).txt 2>&1; done"]
+# Set environment variables
+ENV PYTHONUNBUFFERED 1
 
+# Run Python scripts and capture output/errors
+CMD find /app/StudentWork -name "*.py" -exec sh -c 'python3 "$1" > "/output/$(basename "$1").out" 2>&1' _ {} \;

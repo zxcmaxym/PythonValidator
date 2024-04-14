@@ -1,10 +1,7 @@
 import os
-import docker
 from flask import Flask, request
+import subprocess
 
-current_directory = os.getcwd()
-client = docker.from_env()
-print(client.containers.list())
 
 app = Flask(__name__)
 
@@ -28,12 +25,7 @@ def upload_file():
 @app.route('/validate', methods =['GET'])
 def start_validation():
     print("JAKOO")
-    image, build_logs = client.images.build(tag='validator', path=f'{current_directory}/Docker/')
-    print(build_logs)
-    container = client.containers.run(tag='validator', detach=True)
-    container.stop()
-    container.remove()
-    client.images.remove('Validator', force=True)
+    subprocess.run("./Docker/validate.sh", shell=True) 
     return "Validation finished"
 if __name__ == '__main__':
     app.run(host='localhost', port=4444)
