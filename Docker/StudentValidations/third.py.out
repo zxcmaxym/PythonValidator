@@ -1,0 +1,4 @@
+  File "/app/StudentWork/StudentWork/third.py", line 1
+    what am i doing here
+         ^
+SyntaxError: invalid syntax
