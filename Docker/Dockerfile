@@ -10,8 +10,15 @@ COPY ./StudentWork /app/StudentWork
 # Create output directory
 RUN mkdir -p /output
 
+# Copy the shell script to the container
+COPY run_scripts.sh /app/run_scripts.sh
+
 # Set environment variables
 ENV PYTHONUNBUFFERED 1
 
-# Run Python scripts and capture output/errors
-CMD find /app/StudentWork -name "*.py" -exec sh -c 'python3 "$1" > "/output/$(basename "$1").out" 2>&1' _ {} \;
+# Make the shell script executable
+RUN chmod +x /app/run_scripts.sh
+
+# Run the shell script to execute Python scripts
+CMD ["/app/run_scripts.sh"]
+
