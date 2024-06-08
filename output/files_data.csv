@@ -1,0 +1,4 @@
+FileName,LastLine
+starek.py.out,NameError: name 'sssfprint' is not defined
+test.py.out,"Ahoj, funguje"
+third.py.out,SyntaxError: invalid syntax
