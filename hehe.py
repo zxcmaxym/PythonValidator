@@ -63,6 +63,28 @@ async def display_files():
 
     return FileResponse(csv_file_path, filename='files_data.csv')
 
+@app.get('/remove')
+async def remove_files():
+    # Remove files in UPLOAD_FOLDER
+    for filename in os.listdir(UPLOAD_FOLDER):
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+    # Remove files in VALIDATION_FOLDER
+    for filename in os.listdir(VALIDATION_FOLDER):
+        file_path = os.path.join(VALIDATION_FOLDER, filename)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+    # Remove files in OUTPUT_FOLDER
+    for filename in os.listdir(OUTPUT_FOLDER):
+        file_path = os.path.join(OUTPUT_FOLDER, filename)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+    return {"message": "All files in StudentWork, StudentValidations, and output directories have been removed"}
+
 if __name__ == '__main__':
     import uvicorn
     uvicorn.run(app, host='127.0.0.1', port=4444)
