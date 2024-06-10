@@ -1,9 +1,10 @@
 import os
-from flask import Flask, request, jsonify, send_file
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import FileResponse
 import subprocess
 import csv
 
-app = Flask(__name__)
+app = FastAPI()
 
 UPLOAD_FOLDER = './Docker/StudentWork'
 VALIDATION_FOLDER = './Docker/StudentValidations'
@@ -18,30 +19,29 @@ if not os.path.exists(VALIDATION_FOLDER):
 if not os.path.exists(OUTPUT_FOLDER):
     os.makedirs(OUTPUT_FOLDER)
 
-@app.route('/hehe', methods=['POST'])
-def upload_file():
-    if 'file' not in request.files:
-        return 'No file part'
-    
-    file = request.files['file']
+@app.post('/hehe')
+async def upload_file(file: UploadFile = File(...)):
+    if not file:
+        return {"error": "No file part"}
+
     if file.filename == '':
-        return 'No selected file'
-    
+        return {"error": "No selected file"}
+
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(filepath)
+    with open(filepath, 'wb') as f:
+        f.write(await file.read())
     
-    return 'File uploaded successfully'
+    return {"message": "File uploaded successfully"}
 
-@app.route('/validate', methods=['GET'])
-def start_validation():
-    print("JAKOO")
+@app.get('/validate')
+async def start_validation():
     subprocess.run("./Docker/validate.sh", shell=True)
-    return "Validation finished"
+    return {"message": "Validation finished"}
 
-@app.route('/display', methods=['GET'])
-def display_files():
+@app.get('/display')
+async def display_files():
     files_data = {}
-    
+
     for filename in os.listdir(VALIDATION_FOLDER):
         filepath = os.path.join(VALIDATION_FOLDER, filename)
         if os.path.isfile(filepath):
@@ -52,7 +52,7 @@ def display_files():
                 else:
                     last_line = ''
             files_data[filename] = last_line
-    
+
     # Save data to CSV
     csv_file_path = os.path.join(OUTPUT_FOLDER, 'files_data.csv')
     with open(csv_file_path, 'w', newline='') as csvfile:
@@ -60,9 +60,10 @@ def display_files():
         csv_writer.writerow(['FileName', 'LastLine'])
         for filename, last_line in files_data.items():
             csv_writer.writerow([filename, last_line])
-    
-    return send_file(csv_file_path, as_attachment=True, download_name='files_data.csv')
+
+    return FileResponse(csv_file_path, filename='files_data.csv')
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=4444)
+    import uvicorn
+    uvicorn.run(app, host='127.0.0.1', port=4444)
 
