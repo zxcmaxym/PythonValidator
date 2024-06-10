@@ -1,5 +1,6 @@
 import os
-from fastapi import FastAPI, File, UploadFile
+import shutil
+from fastapi import FastAPI, File, UploadFile, Form, Query
 from fastapi.responses import FileResponse
 import subprocess
 import csv
@@ -20,30 +21,41 @@ if not os.path.exists(OUTPUT_FOLDER):
     os.makedirs(OUTPUT_FOLDER)
 
 @app.post('/hehe')
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), task: str = Form(...)):
     if not file:
         return {"error": "No file part"}
 
     if file.filename == '':
         return {"error": "No selected file"}
 
-    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+    task_folder = os.path.join(UPLOAD_FOLDER, task)
+    if not os.path.exists(task_folder):
+        os.makedirs(task_folder)
+
+    filepath = os.path.join(task_folder, file.filename)
     with open(filepath, 'wb') as f:
         f.write(await file.read())
-    
-    return {"message": "File uploaded successfully"}
+
+    return {"message": "File uploaded successfully to task folder"}
 
 @app.get('/validate')
-async def start_validation():
-    subprocess.run("./Docker/validate.sh", shell=True)
-    return {"message": "Validation finished"}
+async def start_validation(task: str = Query(...)):
+    result = subprocess.run(f"./Docker/validate.sh {task}", shell=True)
+    if result.returncode == 0:
+        return {"message": "Validation finished successfully"}
+    else:
+        return {"error": "Validation script failed", "returncode": result.returncode}
 
 @app.get('/display')
-async def display_files():
+async def display_files(task: str = Query(...)):
+    task_folder = os.path.join(VALIDATION_FOLDER, task)
+    if not os.path.exists(task_folder):
+        return {"error": "Task folder does not exist"}
+
     files_data = {}
 
-    for filename in os.listdir(VALIDATION_FOLDER):
-        filepath = os.path.join(VALIDATION_FOLDER, filename)
+    for filename in os.listdir(task_folder):
+        filepath = os.path.join(task_folder, filename)
         if os.path.isfile(filepath):
             with open(filepath, 'r') as file:
                 lines = file.readlines()
@@ -53,8 +65,12 @@ async def display_files():
                     last_line = ''
             files_data[filename] = last_line
 
-    # Save data to CSV
-    csv_file_path = os.path.join(OUTPUT_FOLDER, 'files_data.csv')
+    # Save data to CSV in the task-specific output folder
+    task_output_folder = os.path.join(OUTPUT_FOLDER, task)
+    if not os.path.exists(task_output_folder):
+        os.makedirs(task_output_folder)
+        
+    csv_file_path = os.path.join(task_output_folder, 'files_data.csv')
     with open(csv_file_path, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerow(['FileName', 'LastLine'])
@@ -65,25 +81,31 @@ async def display_files():
 
 @app.get('/remove')
 async def remove_files():
-    # Remove files in UPLOAD_FOLDER
+    # Remove files and directories in UPLOAD_FOLDER
     for filename in os.listdir(UPLOAD_FOLDER):
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         if os.path.isfile(file_path):
             os.remove(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
 
-    # Remove files in VALIDATION_FOLDER
+    # Remove files and directories in VALIDATION_FOLDER
     for filename in os.listdir(VALIDATION_FOLDER):
         file_path = os.path.join(VALIDATION_FOLDER, filename)
         if os.path.isfile(file_path):
             os.remove(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
 
-    # Remove files in OUTPUT_FOLDER
+    # Remove files and directories in OUTPUT_FOLDER
     for filename in os.listdir(OUTPUT_FOLDER):
         file_path = os.path.join(OUTPUT_FOLDER, filename)
         if os.path.isfile(file_path):
             os.remove(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
 
-    return {"message": "All files in StudentWork, StudentValidations, and output directories have been removed"}
+    return {"message": "All files and directories in StudentWork, StudentValidations, and output directories have been removed"}
 
 if __name__ == '__main__':
     import uvicorn
