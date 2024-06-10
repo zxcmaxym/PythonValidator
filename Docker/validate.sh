@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# Check if the task parameter is provided
-if [ -z "$1" ]; then
-	echo "Task parameter is required"
+# Check if both task and libraries parameters are provided
+if [ -z "$1" ] || [ -z "$2" ]; then
+	echo "Both task and libraries parameters are required"
 	exit 1
 fi
 
 TASK=$1
+LIBRARIES=$2
 
 # Define paths
 TASK_PATH="./Docker/StudentWork/$TASK"
@@ -17,6 +18,9 @@ if [ ! -d "$TASK_PATH" ]; then
 	echo "Task folder does not exist: $TASK_PATH"
 	exit 1
 fi
+
+# Generate requirements.txt file
+echo "$LIBRARIES" | tr ',' '\n' >"$TASK_PATH/requirements.txt"
 
 # Build Docker image
 docker build -t validator ./Docker/

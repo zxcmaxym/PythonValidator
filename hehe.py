@@ -39,8 +39,8 @@ async def upload_file(file: UploadFile = File(...), task: str = Form(...)):
     return {"message": "File uploaded successfully to task folder"}
 
 @app.get('/validate')
-async def start_validation(task: str = Query(...)):
-    result = subprocess.run(f"./Docker/validate.sh {task}", shell=True)
+async def start_validation(task: str = Query(...), libraries: str = Query(...)):
+    result = subprocess.run(f"./Docker/validate.sh {task} {libraries}", shell=True)
     if result.returncode == 0:
         return {"message": "Validation finished successfully"}
     else:
