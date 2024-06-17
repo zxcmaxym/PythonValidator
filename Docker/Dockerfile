@@ -1,20 +1,20 @@
-# Use a Python base image
-FROM python:3
+# Use an official Python runtime as a parent image
+FROM python:3.9-slim
 
-# Set working directory
-WORKDIR /app
+# Set the working directory to /App
+WORKDIR /App
 
-# Create output directory
-RUN mkdir -p /output
+# Create the output directory
+RUN mkdir /App/output
 
-# Copy the shell script to the container
-COPY run_scripts.sh /app/run_scripts.sh
+RUN mkdir /App/StudentWork
 
-# Set environment variables
-ENV PYTHONUNBUFFERED 1
+# Copy the run_script.sh file into the App/scripts/ directory
+COPY ./run_script.sh scripts/
 
-# Make the shell script executable
-RUN chmod +x /app/run_scripts.sh
-# Run the shell script to execute Python scripts
-CMD ["/app/run_scripts.sh"]
+# Make the script executable
+RUN chmod +x scripts/run_script.sh
+
+# Run the script
+CMD ["sh", "scripts/run_script.sh"]
 
