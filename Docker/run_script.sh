@@ -5,7 +5,7 @@ echo "Starting script"
 process_scripts() {
 	echo "Processing scripts"
 	find /App/StudentWork -name "*.py" | while read -r script; do
-		output_file="/App/output/$(basename "$script").out"
+		output_file="/App/output/$TASK/$(basename "$script").out"
 		if ! python3 "$script" >"$output_file" 2>&1; then
 			echo "Failed" >>"$output_file"
 		fi

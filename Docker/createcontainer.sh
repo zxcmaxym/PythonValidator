@@ -8,7 +8,7 @@ fi
 TASK_NAME=$1
 echo $TASK_NAME
 
-docker build -t $TASK_NAME ./Docker/
+docker build --build-arg TASK=$TASK_NAME -t $TASK_NAME ./Docker/
 
 docker create --name $TASK_NAME $TASK_NAME
 

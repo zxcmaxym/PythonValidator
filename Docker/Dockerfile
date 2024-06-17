@@ -1,11 +1,15 @@
 # Use an official Python runtime as a parent image
 FROM python:3.9-slim
 
+ARG TASK
+ENV TASK=$TASK
 # Set the working directory to /App
 WORKDIR /App
 
 # Create the output directory
 RUN mkdir /App/output
+
+RUN mkdir /App/output/"$TASK"  # Use single quotes with escape character
 
 RUN mkdir /App/StudentWork
 
