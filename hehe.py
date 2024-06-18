@@ -8,7 +8,7 @@ app = FastAPI()
 def create_container(task):
     try:
         print(task)
-        container = subprocess.run(f"./Docker/createcontainer.sh {task}", shell=True)
+        container = subprocess.run(f"./Docker/createcontainer.sh {task}", shell=True, capture_output=True, text=True)
         if container.returncode != 0:
             raise Exception(container.stderr)
         return container.stdout
@@ -37,7 +37,21 @@ async def student_upload(name: str, task: str, file: UploadFile = File(...)):
     subprocess.run(f'./Scripts/validate.sh {task} {name}', shell=True)
     result = subprocess.run(f'cat ./Output/{task}/{name}.py.out', shell=True, capture_output=True, text=True)
     output = result.stdout
-    return("output", output)
+    return {"output": output}
+
+@app.post("/teacher/task/create")
+@version(1)
+async def create_task(task: str, file: UploadFile = File(...)):
+    task_path = f"./Tasks/{task}/teacher"
+    os.makedirs(task_path, exist_ok=True)
+    file_location = f"{task_path}/teacher.py"
+    with open(file_location, "wb") as f:
+        f.write(await file.read())
+    if not container_exists(task):
+        create_container(task)
+    return {"detail": "Task created and container started"}
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=4444)
+    uvicorn.run(VersionedFastAPI(app), host="0.0.0.0", port=4444)
+

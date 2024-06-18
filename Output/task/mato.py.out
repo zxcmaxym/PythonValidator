@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/App/StudentWork/mato.py", line 1, in <module>
-    hhehehe
-NameError: name 'hhehehe' is not defined
-Failed
