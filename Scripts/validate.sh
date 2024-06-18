@@ -1,47 +1,35 @@
 #!/bin/bash
 
-# Function to check for log message and copy file
-check_and_copy() {
-	task_name="$1"
-	file_name="$2"
+TASK=$1
+NAME=$2
 
-	# Escape special characters in the log message for grep
-
-	# Check if log contains the completion message
-	if docker logs "$task_name" 2>&1 | grep -q "$file_name is done"; then
-		# Create output directory if it doesn't exist
-		mkdir -p "./output/$task_name"
-
-		# Copy the file with progress indicator
-		docker cp "$task_name:/App/output/$task_name/$file_name.py.out" "./output/$task_name/$file_name.py.out" && echo "File copied successfully!" || echo "Error copying file!"
-
-		# Exit the script after successful copy
-		return 0
-	fi
-}
-
-# Get task and file name from arguments
-task_name="$1"
-file_name="$2"
-
-# Check for missing arguments
-if [ -z "$task_name" ] || [ -z "$file_name" ]; then
-	echo "Usage: $0 <task_name> <file_name>"
-	exit 1
+# Ensure TASK and NAME are provided
+if [ -z "$TASK" ] || [ -z "$NAME" ]; then
+    echo "Usage: $0 <task> <name>"
+    exit 1
 fi
 
-# Loop until file is copied or an error occurs
-while true; do
-	# Call the check_and_copy function
-	result=$(check_and_copy "$task_name" "$file_name")
+# Ensure the output directory exists
+OUTPUT_DIR="./Output/$TASK"
+mkdir -p "$OUTPUT_DIR"
+TASK_FILE="./Tasks/$TASK/$NAME.py"
 
-	# Exit the loop if successful (return value of 0 from check_and_copy)
-	if [[ $result == 0 ]]; then
-		break
-		echo "Done"
-	fi
+docker cp $TASK_FILE $TASK:/App/StudentWork/
+# Function to monitor Docker logs and copy the file
+monitor_logs_and_copy() {
+    while true; do
+        # Check Docker logs for the specific message
+        if docker logs "$TASK" 2>&1 | grep -q "$NAME is done"; then
+            # Perform the docker cp command
+            docker cp "$TASK:/App/output/$TASK/$NAME.py.out" "$OUTPUT_DIR"
+            echo "File copied to $OUTPUT_DIR"
+            break
+        fi
+        # Sleep for a short duration to avoid busy-waiting
+        sleep 5
+    done
+}
 
-	# Print message and sleep before next iteration
-	echo "No matching message found in logs. Waiting for completion..."
-	sleep 1 # Adjust sleep time as needed
-done
+# Start monitoring logs
+monitor_logs_and_copy
+

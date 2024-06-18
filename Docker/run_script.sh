@@ -3,17 +3,20 @@
 echo "Starting script"
 
 process_scripts() {
-	echo "Processing scripts"
-	find /App/StudentWork -name "*.py" | while read -r script; do
-		output_file="/App/output/$TASK/$(basename "$script").out"
-		if ! python3 "$script" >"$output_file" 2>&1; then
-			echo "Failed" >>"$output_file"
-		fi
-		base_name=$(basename "$script" .py)
-		echo "$base_name is done"
-		rm "$script"
-	done
+    echo "Processing scripts"
+    find /App/StudentWork -name "*.py" | while read -r script; do
+        output_file="/App/output/$TASK/$(basename "$script").out"
+        if python3 "$script" >"$output_file" 2>&1; then
+            echo "Success" >>"$output_file"
+        else
+            echo "Failed" >>"$output_file"
+        fi
+        base_name=$(basename "$script" .py)
+        echo "$base_name is done"
+        rm "$script"
+    done
 }
+
 SECONDS=0
 WATCHED_FOLDER="/App/StudentWork"
 DURATION=$((500)) # Duration in seconds
