@@ -20,15 +20,41 @@ check_and_run_teacher() {
 
 process_scripts() {
 	echo "Processing scripts"
+	# Path to the teacher's expected output
+	teacher_output_file="/App/StudentWork/teacher/teacher.py.out"
+
 	find /App/StudentWork -path /App/StudentWork/teacher -prune -o -name "*.py" -print | while read -r script; do
+		# Define the output file path
 		output_file="/App/output/$TASK/$(basename "$script").out"
+
+		# Execute the script and redirect output to the output file
 		if python3 "$script" >"$output_file" 2>&1; then
-			echo "Success" >>"$output_file"
+			echo "Success" >>/dev/null
 		else
-			echo "Failed" >>"$output_file"
+			echo "Failed trying to run the script" >>"$output_file"
 		fi
+
+		# Get the base name of the script without the .py extension
 		base_name=$(basename "$script" .py)
 		echo "$base_name is done"
+
+		# Define the final output file path
+		final_output_file="/App/output/$TASK/final/$base_name.final"
+
+		# Compare the generated output with the teacher's output
+		if cmp -s "$output_file" "$teacher_output_file"; then
+			echo "Output matches" >"$final_output_file"
+		else
+			{
+				echo "Given output:"
+				cat "$output_file"
+				echo
+				echo "Expected output:"
+				cat "$teacher_output_file"
+			} >"$final_output_file"
+		fi
+
+		# Remove the processed script
 		rm "$script"
 	done
 }

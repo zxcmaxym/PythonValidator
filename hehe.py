@@ -35,7 +35,7 @@ async def student_upload(name: str, task: str, file: UploadFile = File(...)):
     if not container_exists(task):
         create_container(task)
     subprocess.run(f'./Scripts/validate.sh {task} {name}', shell=True)
-    result = subprocess.run(f'cat ./Output/{task}/{name}.py.out', shell=True, capture_output=True, text=True)
+    result = subprocess.run(f'cat ./Output/{task}/final/{name}.final', shell=True, capture_output=True, text=True)
     output = result.stdout
     return {"output": output}
 
