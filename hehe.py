@@ -15,6 +15,24 @@ def create_container(task):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Container creation failed: {str(e)}")
 
+def start_container(task):
+    try:
+        print(task)
+        container = subprocess.run(f"docker start {task}", shell=True, capture_output=True, text=True)
+        if container.returncode != 0:
+            raise Exception(container.stderr)
+        return container.stdout
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Container start failed: {str(e)}")
+
+def container_alive(task):
+    result = subprocess.run(
+        ["docker", "inspect", "--format", "{{.State.Running}}", task],
+        capture_output=True,
+        text=True
+    )
+    return result.stdout.strip() == "true"
+
 def container_exists(task):
     result = subprocess.run(
         ["docker", "ps", "-a", "--filter", f"name={task}", "--format", "{{.Names}}"],
@@ -34,6 +52,8 @@ async def student_upload(name: str, task: str, file: UploadFile = File(...)):
         f.write(await file.read())
     if not container_exists(task):
         create_container(task)
+    if not container_alive(task):
+        start_container(task)
     subprocess.run(f'./Scripts/validate.sh {task} {name}', shell=True)
     result = subprocess.run(f'cat ./Output/{task}/final/{name}.final', shell=True, capture_output=True, text=True)
     output = result.stdout
