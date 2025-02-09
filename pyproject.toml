@@ -3,7 +3,7 @@ name = "pythonvalidator"
 version = "0.1.0"
 description = ""
 authors = ["Max"]
-readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -11,6 +11,7 @@ fastapi = "^0.115.5"
 fastapi-versioning = "^0.10.0"
 python-multipart = "^0.0.17"
 uvicorn = "^0.32.1"
+exceptiongroup = "^1.2.2"
 
 
 [build-system]
