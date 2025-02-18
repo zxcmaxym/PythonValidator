@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+    validator:
+        build:
+            context: .
+            dockerfile: ./Dockerfile
+        ports:
+            # Map the app's port to the host
+            - 4444:4444
+        depends_on:
+            # Wait for the database to be ready
+            - db
+        environment:
+            - DATABASE_URL=postgresql://user:password@db:5432/dbname
+    db:
+        image: postgres:15
+        container_name: postgres_db
+        environment:
+            POSTGRES_USER: validator
+            POSTGRES_PASSWORD: validator
+            POSTGRES_DB: validator
+        ports:
+            # Map PostgreSQL port to the host
+            - 5432:5432
+        volumes:
+            # Persist database data
+            - postgres_data:/var/lib/postgresql/data
+volumes:
+    postgres_data: null
